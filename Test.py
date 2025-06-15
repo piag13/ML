@@ -1,7 +1,7 @@
 from collections import Counter
 import os
 
-label_dir = 'dataset_balanced/train_data/labels/val'
+label_dir = 'Dataset/train_data/labels/train'
 class_counts = Counter()
 
 for label_file in os.listdir(label_dir):

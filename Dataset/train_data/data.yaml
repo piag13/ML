@@ -1,6 +1,6 @@
-train: /content/drive/MyDrive/AI_CAPSTONE_PROJECT/train_data/images/train
-val: /content/drive/MyDrive/AI_CAPSTONE_PROJECT/train_data/images/val
-test: /content/drive/MyDrive/AI_CAPSTONE_PROJECT/train_data/images/test
+train: /content/drive/MyDrive/yolov5/ML/dataset_balanced/train_data/images/train
+val: /content/drive/MyDrive/yolov5/ML/dataset_balanced/train_data/images/val
+test: /content/drive/MyDrive/yolov5/ML/dataset_balanced/train_data/images/test
 
 nc: 29
 # Classes
