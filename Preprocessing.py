@@ -19,7 +19,7 @@ os.makedirs(output_lbl_dir, exist_ok=True)
 
 # Đếm số lượng mỗi lớp
 class_counts = Counter()
-label_map = {}  # ảnh nào chứa lớp nào
+label_map = {}
 
 for label_file in os.listdir(input_lbl_dir):
     if not label_file.endswith('.txt'):
@@ -30,7 +30,7 @@ for label_file in os.listdir(input_lbl_dir):
         class_counts.update(classes)
         label_map[label_file] = classes
 
-# Tăng cường cho lớp < 100 ảnh
+# Tăng cường cho lớp < TARGET_COUNT ảnh
 TARGET_COUNT = 100
 AUG_TIMES = {}
 
@@ -41,7 +41,7 @@ for cls, count in class_counts.items():
 
 print("Các lớp cần tăng cường:", AUG_TIMES)
 
-# Bắt đầu tăng cường
+# Bắt đầu xử lý ảnh
 for img_file in os.listdir(input_img_dir):
     if not img_file.lower().endswith(('.jpg', '.png')):
         continue
@@ -56,35 +56,33 @@ for img_file in os.listdir(input_img_dir):
         lines = f.readlines()
         classes_in_image = [line.split()[0] for line in lines]
 
+    # Luôn copy ảnh gốc và label gốc vào output
+    shutil.copy(os.path.join(input_img_dir, img_file), os.path.join(output_img_dir, img_file))
+    shutil.copy(label_path, os.path.join(output_lbl_dir, label_file))
+
     # Kiểm tra xem ảnh chứa lớp cần tăng cường không
     need_aug = [cls for cls in classes_in_image if cls in AUG_TIMES and AUG_TIMES[cls] > 0]
     if not need_aug:
-        # Copy ảnh và nhãn gốc vào folder mới
-        shutil.copy(os.path.join(input_img_dir, img_file), os.path.join(output_img_dir, img_file))
-        shutil.copy(label_path, os.path.join(output_lbl_dir, label_file))
         continue
 
     img = cv2.imread(os.path.join(input_img_dir, img_file))
-    copies = max([AUG_TIMES[cls] for cls in need_aug])  # bỏ giới hạn 3 bản sao
+    copies = max([AUG_TIMES[cls] for cls in need_aug])
 
     for i in range(copies):
         aug_img = augment(image=img)['image']
         new_img_name = f"aug_{i}_{img_file}"
         new_lbl_name = f"aug_{i}_{label_file}"
 
-        # Lưu ảnh mới
+        # Lưu ảnh tăng cường và nhãn tương ứng
         cv2.imwrite(os.path.join(output_img_dir, new_img_name), aug_img)
         shutil.copy(label_path, os.path.join(output_lbl_dir, new_lbl_name))
 
-        # Giảm số lượng cần tăng cường cho lớp tương ứng (nếu còn)
+        # Giảm số lượng cần augment
         for cls in need_aug:
             if cls in AUG_TIMES:
                 AUG_TIMES[cls] -= 1
                 if AUG_TIMES[cls] <= 0:
                     del AUG_TIMES[cls]
 
-        # Dừng sớm nếu không còn lớp cần tăng cường trong ảnh này
         if all(cls not in AUG_TIMES for cls in need_aug):
             break
-
-
